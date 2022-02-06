@@ -3,6 +3,8 @@
 #include <linux/init.h>
 #include <linux/fs.h>
 
+static int DeviceUseCount = 0;
+
 static ssize_t uart_read(struct file *fp, char *buf, size_t nbytes, loff_t *off)
 {
 	return nbytes;
@@ -15,11 +17,18 @@ static ssize_t uart_write(struct file *fp, const char *str, size_t nbytes, loff_
 
 static int uart_open(struct inode *node, struct file *fp)
 {
+	if(DeviceUseCount != 0) {
+		return -EBUSY;
+	}
+
+	DeviceUseCount++;
+
 	return 0;
 }
 
 static int uart_release(struct inode *node, struct file *fp)
 {
+	DeviceUseCount--;
 	return 0;
 }
 
