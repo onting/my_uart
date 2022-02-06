@@ -86,13 +86,10 @@ static ssize_t uart_write(struct file *fp, const char *user_str, size_t nbytes, 
 		if(err < 0) { 
 			return -1;
 		}
-		for(i = 0; i < n; i++) { // send data
+		for(i = 0; i < n && p_AUX->MU_STAT_REG & 32; i++) { // send data
 			p_AUX->MU_IO_REG = buf[i];
-			if(p_AUX->MU_STAT_REG & 32){
-				n = i;
-				break;
-			}
 		}
+		n = i;
 		len += n;
 	}
 
