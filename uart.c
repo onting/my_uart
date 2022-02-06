@@ -50,7 +50,7 @@ static int DeviceUseCount = 0;
 
 static ssize_t uart_read(struct file *fp, char *user_buf, size_t nbytes, loff_t *off)
 {
-	char buf[16];
+	char buf[8];
 	int n;
 	int len = 0;
 	int err;
@@ -72,7 +72,7 @@ static ssize_t uart_read(struct file *fp, char *user_buf, size_t nbytes, loff_t 
 
 static ssize_t uart_write(struct file *fp, const char *user_str, size_t nbytes, loff_t *off)
 {
-	char buf[16];
+	char buf[8];
 	int i;
 	int n;
 	int len = 0;
