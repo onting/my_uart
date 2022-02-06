@@ -48,14 +48,51 @@ struct BCM2711_AUX {
 static struct BCM2711_AUX *p_AUX = (struct BCM2711_AUX *)0x7e2150000;
 static int DeviceUseCount = 0;
 
-static ssize_t uart_read(struct file *fp, char *buf, size_t nbytes, loff_t *off)
+static ssize_t uart_read(struct file *fp, char *user_buf, size_t nbytes, loff_t *off)
 {
-	return nbytes;
+	char buf[16];
+	int n;
+	int len = 0;
+	int err;
+
+	while(len < nbytes) {
+		n = 0;
+		while(n < sizeof(buf) && n < nbytes - len && p_AUX->MU_IIR_REG & 2) { //store and polling
+			buf[n++] = (char)p_AUX->MU_IO_REG; // fill buffer
+			p_AUX->MU_IIR_REG = 2; // clear buffer
+		}
+		err = copy_to_user(user_buf + len, buf, n); // copy to user buffer
+		if(err < 0) {
+			return -1;
+		}
+		len += n;
+	}
+
+	return len;
 }
 
-static ssize_t uart_write(struct file *fp, const char *str, size_t nbytes, loff_t *off)
+static ssize_t uart_write(struct file *fp, const char *user_str, size_t nbytes, loff_t *off)
 {
-	return nbytes;
+	char buf[16];
+	int i;
+	int n;
+	int len = 0;
+	int err;
+
+	while(len < nbytes) {
+		while(!(p_AUX->MU_IIR_REG & 1)); //polling
+		n = nbytes - len > sizeof(buf) ? sizeof(buf) : nbytes - len; //cut n into buf size
+		err = copy_from_user(buf, user_str + len, n); //copy to kernel
+		if(err < 0) { 
+			return -1;
+		}
+		for(i = 0; i < n; i++) { // send data
+			p_AUX->MU_IO_REG = buf[i];
+		}
+		len += n;
+	}
+
+	return len;
 }
 
 static int uart_open(struct inode *node, struct file *fp)
