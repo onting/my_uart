@@ -57,8 +57,9 @@ static ssize_t uart_read(struct file *fp, char *user_buf, size_t nbytes, loff_t 
 
 	while(len < nbytes) {
 		n = 0;
-		while(n < sizeof(buf) && n < nbytes - len && p_AUX->MU_IIR_REG & 2) { //store and polling
-			buf[n++] = (char)p_AUX->MU_IO_REG; // fill buffer
+		while(!(p_AUX->MU_IIR_REG & 1)); //polling
+		while(n < sizeof(buf) && n < nbytes - len && p_AUX->MU_IIR_REG & 2) { // copy to buf
+			buf[n++] = (char)p_AUX->MU_IO_REG;
 		}
 		err = copy_to_user(user_buf + len, buf, n); // copy to user buffer
 		if(err < 0) {
@@ -87,6 +88,10 @@ static ssize_t uart_write(struct file *fp, const char *user_str, size_t nbytes, 
 		}
 		for(i = 0; i < n; i++) { // send data
 			p_AUX->MU_IO_REG = buf[i];
+			if(p_AUX->MU_STAT_REG & 32){
+				n = i;
+				break;
+			}
 		}
 		len += n;
 	}
