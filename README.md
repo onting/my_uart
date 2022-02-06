@@ -9,6 +9,5 @@ Features
 - AUX 사용
 
 추가 예정 Feature
-- Multiple access
 - Interrupt 지원
 - Flexible baud rate
