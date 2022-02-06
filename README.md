@@ -6,6 +6,7 @@ Features
 - 115200 baud rate (Fixed)
 - No multiple access
 - Polling 방식
+- AUX 사용
 
 추가 예정 Feature
 - Multiple access
